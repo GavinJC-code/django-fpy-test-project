@@ -1,0 +1,29 @@
+version: '3'  # Specifies the version of the Docker Compose file format.
+
+services:  # Begins the section where services (containers) are defined.
+
+  basic-postgres:  # Defines a service named "basic-postgres".
+      image: postgres:14.1-alpine  # Uses the Postgres 14.1 image based on Alpine Linux.
+      container_name: fpy_postgres  # Sets a custom name for the created container.
+      environment:  # Starts the section for setting environment variables in the container.
+        POSTGRES_USER: postgres  # Sets the default database user as "postgres".
+        POSTGRES_PASSWORD: 4y7sV96vA9wv46VR  # Sets the password for the database user.
+        PGDATA: /var/lib/postgresql/data/pgdata  # Sets the location where Postgres data will be stored inside the container.
+      volumes:  # Begins the section for mounting volumes.
+        - postgres_data:/var/lib/postgresql/data  # Mounts a named volume to persist database data.
+      ports:  # Exposes ports from the container to the host machine. 
+        - "5432:5432"  # Maps port 5432 inside the container to port 5432 on the host.
+      restart: unless-stopped  # Specifies the restart policy for the container.
+
+  web:  # Defines another service named "web".
+    build: .  # Tells Docker to build the image for this service using the `Dockerfile` in the current directory.
+    command: python manage.py runserver 0.0.0.0:8000  # Overrides the default command to run the Django development server.
+    volumes:  # Maps volumes from the host to the container.
+      - .:/app  # Maps the current directory (project directory) to the `/app` directory inside the container.
+    ports:  # Exposes ports from the "web" container to the host.
+      - "8000:8000"  # Maps port 8000 inside the container to port 8000 on the host.
+    depends_on:  # Specifies that the "web" container depends on the "basic-postgres" service.
+      - basic-postgres  # The "web" service will wait for "basic-postgres" to be "ready" before starting.
+
+volumes:  # Begins the section where Docker volumes are defined.
+  postgres_data:  # Creates a named Docker volume called "postgres_data" to persist database data.
